@@ -43,16 +43,26 @@ examples=[]
 stuff=sys.argv
 #Check the -l flag
 if("-h" in stuff):
+	print "Usage: python ContentConverter.py [flags] inputDirectory"
 	print ""
 	print "-h = help | display this help message"
 	print "-l filename = log output to given file | default = print output to console"
 	print "-i format = input format | default ='.tif' or '.tiff'. If -v is on, default '.mpeg'"
-	print "-o format = output format |default = '.jpg'. If -v, default ='.mp4'"
+	print "-o format = output format |default = '.jpg'. If -v, default ='.m4v'"
 	print "-s integer = max size | default = -1, or no rescaling"
 	print "-nr = no rescale | default = rescale to max size"
 	print "-v = video | Specifies file as a video file, for HandBrake"
 	print "-sw filename = log large files to given file | default = no logging"
+	print "-standard = Archive standard | use standard settings based on format"
 	sys.exit()
+if("-standard" in stuff):
+	stuff.remove("-standard")
+	if("-v" in stuff):
+		pass
+	else:
+		outextension='.jpg'
+		max_size=100000
+		rescale=True
 if("-l" in stuff):
 	try:
 		logfile=stuff[stuff.index("-l")+1]
@@ -91,7 +101,11 @@ if("-s" in stuff):
 	stuff.pop(stuff.index("-s"))
 	print max_size
 else:
-	max_size=-1
+	try:
+		if(max_size==0):
+			pass
+	except: 
+		max_size=-1
 #Check the -nr flag
 if("-nr" in stuff):
 	stuff.remove("-nr")
@@ -104,7 +118,7 @@ if("-v" in stuff):
 	if(extension==''):
 		extension='.mpeg'
 	if(outextension=='.jpg'):
-		outextension='.mp4'
+		outextension='.m4v'
 	video=True
 else:
 	video=False
@@ -144,4 +158,5 @@ for root,dirs,files in os.walk(top):
 if(video):
 	HB.convertVideo(top,examples,extension,outextension,max_size,logfile,warningfile)
 else:
+	print top,examples,extension,outextension,max_size,logfile,rescale
 	IM.convertImage(top,examples,extension,outextension,max_size,logfile,rescale)
