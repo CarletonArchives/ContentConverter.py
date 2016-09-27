@@ -4,18 +4,23 @@ import sys
 import re
 import imghdr
 import math
+import HandBrake as HB
 
-#Python program to run ImageMagick against all .tiffs in a directory, converting them to jpgs of <100k
+#Python program to batch convert files from various multimedia formats to other multimedia formats.
 
 #Syntax is:
-#python ImageMagick.py inputFile
+#python ContentConverter.py inputFile
 
 #Current flags:
+#-h = help | display this help message
 #-l filename = log output to given file | default = print output to console
 #-i format = input format | default ='.tif' or '.tiff'
 #-o format = output format |default = '.jpg'
 #-s integer = max size | default = -1, or no rescaling
 #-nr = no rescale | default = rescale to max size
+#-v = video | Specifies file as a video file, for HandBrake
+#-sw filename = log large files to given file | default = no logging
+
 
 #TODO: 
 #Add format options, .pdf, .docx, video, audio (so it handles pdfs, etc.)
@@ -37,6 +42,17 @@ def logOutput(output,logfile):
 examples=[]
 stuff=sys.argv
 #Check the -l flag
+if("-h" in stuff):
+	print ""
+	print "-h = help | display this help message"
+	print "-l filename = log output to given file | default = print output to console"
+	print "-i format = input format | default ='.tif' or '.tiff'. If -v is on, default '.mpeg'"
+	print "-o format = output format |default = '.jpg'. If -v, default ='.mp4'"
+	print "-s integer = max size | default = -1, or no rescaling"
+	print "-nr = no rescale | default = rescale to max size"
+	print "-v = video | Specifies file as a video file, for HandBrake"
+	print "-sw filename = log large files to given file | default = no logging"
+	sys.exit()
 if("-l" in stuff):
 	try:
 		logfile=stuff[stuff.index("-l")+1]
@@ -82,7 +98,29 @@ if("-nr" in stuff):
 	rescale=False
 else:
 	rescale=True
+#Check the -v flag
+if("-v" in stuff):
+	stuff.remove("-v")
+	if(extension==''):
+		extension='.mpeg'
+	if(outextension=='.jpg'):
+		outextension='.mp4'
+	video=True
+else:
+	video=False
+#Check the -sw flag
+if("-sw" in stuff):
+	try:
+		warningfile=open(stuff[stuff.index("-sw")+1],"w")
+	except:
+		print "File for size warnings not found"
+	stuff.pop(stuff.index("-sw")+1)
+	stuff.pop(stuff.index("-sw"))
+
+else:
+	warningfile=None
 top=sys.argv[1]
+print top
 #If they are bad at typing directories, don't bother doing anything.
 try:
 	os.chdir(top)
@@ -103,4 +141,7 @@ for root,dirs,files in os.walk(top):
 		elif (test.endswith(extension) and (root+"/"+test).find('/data/meta')==-1):
 			logOutput("Found "+root+"/"+test+" with correct type",logfile)
 			examples.append(root+"/"+test)
-IM.convertImage(top,examples,extension,outextension,max_size,logfile,rescale)
+if(video):
+	HB.convertVideo(top,examples,extension,outextension,max_size,logfile,warningfile)
+else:
+	IM.convertImage(top,examples,extension,outextension,max_size,logfile,rescale)
