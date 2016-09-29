@@ -20,12 +20,17 @@ import ffmpeg as fmpg
 #-s integer = max size | default = -1, or no rescaling
 #-nr = no rescale | default = rescale to max size
 #-v = video | Specifies file as a video file, for HandBrake
+#-a = audio | Specifies file as audio, for ffmpeg
 #-sw filename = log large files to given file | default = no logging
 
 
 #TODO: 
-#Add format options, .pdf, .docx, video, audio (so it handles pdfs, etc.)
-#Probably should include a list of common options for the Archives.
+#Add format options, .pdf, .docx
+#Change Video to ffmpeg
+#Clean up -nr flag
+#Figure out standard video and audio options
+#Test, Test, Test
+#More?
 
 #Known Bugs:
 #Will not convert anything with a ' in the filename.
@@ -84,6 +89,7 @@ def grabFlag(args,flag,fields,defaults,maxargs):
 				params[fields[spot]].append(values[i])
 				i+=1
 	return args
+#The flags. First, check if it is audio, video, or picture
 stuff=grabFlag(stuff,"-v",['type','extension','outextension'],['video','.mpeg','.m4v'],0) #Check -v flag
 stuff=grabFlag(stuff,"-a",['type','extension','outextension'],['audio','.wav','.mp3'],0) #Check -a flag
 
