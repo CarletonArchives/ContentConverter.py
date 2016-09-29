@@ -1,30 +1,23 @@
-import re
 import os
 import sys
-import math
+
 def logOutput(output,params):
 	if('logfile' in params):
 		params['logfile'].write(output+"\n")
 	else:
 		print output
 
-
-#Convert each example
-def convertImage(examples,params):
+def convertAudio(examples,params):
 	for example in examples:
 	
 		exit=False
 		#Find the new filename, by replacing .tif or .tiff, or adding .jpg
 		if('extension' not in params):
-			tiff=re.compile("\.tiff?$")
-			replace=tiff.search(example)
-			if replace:
-				newstring=example.replace(replace.group(),params['outextension'])
-			else:
-				newstring=example+params['outextension']
-	
-		else:
+			params['extension']='.wav'
+		if example.find(params['extension'])>0:
 			newstring=example.replace(params['extension'],params['outextension'])
+		else:
+			newstring=example+params['outextension']
 		if('/data/originals' in newstring):
 			newstring=newstring.replace('/data/originals','/data/dips',1)
 			newdirs=newstring.split('/')
@@ -50,7 +43,7 @@ def convertImage(examples,params):
 		except:
 			#If it isn't, try converting it
 			try:
-				os.system("convert '"+example+"' '"+newstring+"'")
+				os.system("ffmpeg -i '"+example+"' '"+newstring+"' ")
 			except:
 				logOuput("Error converting file " +newstring,params)
 				exit=True
@@ -64,16 +57,10 @@ def convertImage(examples,params):
 		if(exit==True):
 			continue
 	
-		if('max_size' in params and 'rescale' in params):
-			scale=1
+		if('max_size' in params and 'warningfile' in params):
 			#If the file isn't small enough, change the scale and reconvert until it fits.
-			while(os.path.getsize(newstring)>params['max_size'] and exit==False):
-				scale = scale*math.sqrt(params['max_size']*1.0/os.path.getsize(newstring))
-				logOutput("Scaling at "+str(math.sqrt(scale))+" times original",params)
-				try:		
-					os.system("convert '"+example+"' -resize "+str(100*scale)+"% '"+ newstring+"'")
-				except:
-					logOutput("error dealing with file: "+example,params)
-					exit=True
+			if(os.path.getsize(newstring)>params['max_size']):
+				logOutput("The file was big enough to generate a warning",params)
+				params['warningfile'].write(newstring+"\n")
 		logOutput(newstring+"\t"+str(os.path.getsize(newstring)),params)
 

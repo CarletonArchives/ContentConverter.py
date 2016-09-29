@@ -5,6 +5,7 @@ import re
 import imghdr
 import math
 import HandBrake as HB
+import ffmpeg as fmpg
 
 #Python program to batch convert files from various multimedia formats to other multimedia formats.
 
@@ -32,131 +33,133 @@ import HandBrake as HB
 
 
 
-def logOutput(output,logfile):
-	if(logfile!=None):
-		logfile.write(output+"\n")
+def logOutput(output,params):
+	if('logfile' in params):
+		params['logfile'].write(output+"\n")
 	else:
 		print output
 
-
+global params
+params={}
 examples=[]
 stuff=sys.argv
-#Check the -l flag
+#Yes, I did write my own flag handler, and yes, I am a genuine idiot. But I don't care. This also allows me to set up defaults and stuff in the way I like.
+def grabFlag(args,flag,fields,defaults,maxargs):
+	if(flag in args):
+		values=[]
+		i=args.index(flag)+1
+		while((args[i][0]!="-") if i<len(args) else False):
+			values.append(args[i])
+			i+=1
+		i-=1
+		back=args.index(flag)
+		while(i!=back-1):
+			args.pop(i)
+			i-=1
+		if(maxargs>=0 and len(values)>maxargs):
+			print flag + " flag has too many arguments! "+maxargs+" required, "+len(values)+" given"
+			sys.exit()
+		if len(fields)>len(values):
+			i=0
+			for value in values:
+				params[fields[i]]=value
+				i+=1
+			while(i<len(fields)):
+				if(defaults[i]!=None):
+					params[fields[i]]=defaults[i]
+				i+=1
+		if len(fields)==len(values):
+			i=0
+			for value in values:
+				params[fields[i]]=value
+				i+=1
+		if len(fields)<len(values):
+			i=0
+			for field in fields:
+				params[field]=values[i]
+				i+=1
+			spot=i-1
+			params[fields[spot]]=[params[fields[spot]]]
+			while(i<len(values)):
+				params[fields[spot]].append(values[i])
+				i+=1
+	return args
+stuff=grabFlag(stuff,"-v",['type','extension','outextension'],['video','.mpeg','.m4v'],0) #Check -v flag
+stuff=grabFlag(stuff,"-a",['type','extension','outextension'],['audio','.wav','.mp3'],0) #Check -a flag
+
+if('type' not in params):
+	stuff=grabFlag(stuff,"-standard",['max_size','outextension','rescale'],[100000,'.jpg',True],0) #Grab the -standard flag
+
+elif (params['type']=='video'):
+	stuff=grabFlag(stuff,"-standard",['max_size','outextension','warningfile'],[100000000,'.m4v','toobig.out'],0)
+elif (params['type']=='audio'):
+	stuff=grabFlag(stuff,"-standard",['max_size','outextension','warningfile'],[10,'.mp3','toobig.out'],0)
+
+stuff=grabFlag(stuff,"-s",['max_size'],[None],1) #Grab the -s flag
+stuff=grabFlag(stuff,"-i",['extension'],[None],1) #Grab the -i flag
+stuff=grabFlag(stuff,"-o",['outextension'],[None],1) #Grab the -o flag
+stuff=grabFlag(stuff,"-sw",['warningfile'],[None],1) #Grab the -sw flag
+stuff=grabFlag(stuff,"-l",['logfile'],[None],1) #Grab the -l flag
+#Display help message
 if("-h" in stuff):
-	print "Usage: python ContentConverter.py [flags] inputDirectory"
-	print ""
-	print "-h = help | display this help message"
-	print "-l filename = log output to given file | default = print output to console"
-	print "-i format = input format | default ='.tif' or '.tiff'. If -v is on, default '.mpeg'"
-	print "-o format = output format |default = '.jpg'. If -v, default ='.m4v'"
-	print "-s integer = max size | default = -1, or no rescaling"
-	print "-nr = no rescale | default = rescale to max size"
-	print "-v = video | Specifies file as a video file, for HandBrake"
-	print "-sw filename = log large files to given file | default = no logging"
-	print "-standard = Archive standard | use standard settings based on format"
+	help=open("help.txt","r")
+	for i in help:
+		print i,
+	help.close()
 	sys.exit()
-if("-standard" in stuff):
-	stuff.remove("-standard")
-	if("-v" in stuff):
-		pass
-	else:
-		outextension='.jpg'
-		max_size=100000
-		rescale=True
-if("-l" in stuff):
-	try:
-		logfile=stuff[stuff.index("-l")+1]
-		stuff.remove(logfile)
-		stuff.remove("-l")
-		logfile=open(logfile,"w")
-	except:
-		print "Error in logfile"
-		logfile=None
-else:
-	logfile=None
-#Check the -i flag
-if("-i" in stuff):
-	extension=stuff[stuff.index("-i")+1]
-	stuff.pop(stuff.index("-i")+1)
-	stuff.pop(stuff.index("-i"))
-	print extension
-else:
-	extension=''
-	tiff=re.compile("\.tiff?$")
-#Check the -o flag
-if("-o" in stuff):
-	outextension=stuff[stuff.index("-o")+1]
-	stuff.pop(stuff.index("-o")+1)
-	stuff.pop(stuff.index("-o"))
-	print outextension
-else:
-	outextension='.jpg'
-#Check the -s flag
-if("-s" in stuff):
-	try:
-		max_size=int(stuff[stuff.index("-s")+1])
-	except:
-		max_size=-1
-	stuff.pop(stuff.index("-s")+1)
-	stuff.pop(stuff.index("-s"))
-	print max_size
-else:
-	try:
-		if(max_size==0):
-			pass
-	except: 
-		max_size=-1
 #Check the -nr flag
 if("-nr" in stuff):
 	stuff.remove("-nr")
 	rescale=False
 else:
 	rescale=True
-#Check the -v flag
-if("-v" in stuff):
-	stuff.remove("-v")
-	if(extension==''):
-		extension='.mpeg'
-	if(outextension=='.jpg'):
-		outextension='.m4v'
-	video=True
-else:
-	video=False
-#Check the -sw flag
-if("-sw" in stuff):
-	try:
-		warningfile=open(stuff[stuff.index("-sw")+1],"w")
-	except:
-		print "File for size warnings not found"
-	stuff.pop(stuff.index("-sw")+1)
-	stuff.pop(stuff.index("-sw"))
-
-else:
-	warningfile=None
+	params['rescale']=True
 top=sys.argv[1]
+params['top']=top
 print top
+print params
+if ('max_size' in params):
+	try:
+		params['max_size']=int(params['max_size'])
+	except:
+		print "Size given was not an int"
+		sys.exit()
+if ('warningfile' in params):
+	try:
+		params['warningfile']=open(params['warningfile'],"w")
+	except:
+		print "Invalid file listed for size warnings"
+		sys.exit()
+if('logfile' in params):
+	try:
+		params['logfile']=open(params['logfile'],"w")
+	except:
+		print "Invalid log file"
+		sys.exit()
 #If they are bad at typing directories, don't bother doing anything.
 try:
 	os.chdir(top)
 except:
-	logOutput("Directory "+str(top)+" not found.",logfile)
+	logOutput("Directory "+str(top)+" not found.",params)
 	sys.exit()
 #Otherwise, walk through directory tree, and add .tiffs to examples
 for root,dirs,files in os.walk(top):
 	for test in files:
-		if(extension==''):
+		if('extension' not in params):
 			try:
 				temp=imghdr.what(root+"/"+test)
 			except:
 				temp=''
 			if temp=='tiff':
-				logOutput("Found "+root+"/"+test+" with correct type",logfile)
+				logOutput("Found "+root+"/"+test+" with correct type",params)
 				examples.append(root+"/"+test)
-		elif (test.endswith(extension) and (root+"/"+test).find('/data/meta')==-1):
-			logOutput("Found "+root+"/"+test+" with correct type",logfile)
+		elif (test.endswith(params['extension']) and (root+"/"+test).find('/data/meta')==-1):
+			logOutput("Found "+root+"/"+test+" with correct type",params)
 			examples.append(root+"/"+test)
-if(video):
-	HB.convertVideo(top,examples,extension,outextension,max_size,logfile,warningfile)
+if('type' in params):
+	if('type'=='video'):
+		HB.convertVideo(examples,params)
+	else:
+		fmpg.convertAudio(examples,params)
 else:
-	print top,examples,extension,outextension,max_size,logfile,rescale
-	IM.convertImage(top,examples,extension,outextension,max_size,logfile,rescale)
+	IM.convertImage(examples,params)

@@ -1,23 +1,25 @@
 import os
 import sys
 
-def logOutput(output,logfile):
-	if(logfile!=None):
-		logfile.write(output+"\n")
+def logOutput(output,params):
+	if('logfile' in params):
+		params['logfile'].write(output+"\n")
 	else:
 		print output
 
-def convertVideo(top,examples,extension,outextension,max_size,logfile,warningfile):
+def convertVideo(examples,params):
 	for example in examples:
 	
 		exit=False
 		#Find the new filename, by replacing .tif or .tiff, or adding .jpg
-		if(extension==''):
-			extension='.mpeg'
-		if example.find(extension)>0:
-			newstring=example.replace(extension,outextension)
+		if('extension' not in params):
+			params['extension']='.mpeg'
+		if('outextension' not in params):
+			params['outextension']='.m4v'
+		if example.find(params['extension'])>0:
+			newstring=example.replace(params['extension'],params['outextension'])
 		else:
-			newstring=example+outextension
+			newstring=example+params['outextension']
 		if('/data/originals' in newstring):
 			newstring=newstring.replace('/data/originals','/data/dips',1)
 			newdirs=newstring.split('/')
@@ -27,40 +29,40 @@ def convertVideo(top,examples,extension,outextension,max_size,logfile,warningfil
 				newpath+="/"
 				try:
 					os.chdir(newpath)
-					os.chdir(top)
+					os.chdir(params['top'])
 				except:
 					os.mkdir(newpath)
 		#Skip if the file is already converted
 		try:
-			if(max_size>0):
-				if(os.path.getsize(newstring)<max_size):
-					logOutput("File "+newstring+" already exists",logfile)
+			if('max_size' in params):
+				if(os.path.getsize(newstring)<params['max_size']):
+					logOutput("File "+newstring+" already exists",params)
 					exit=True
 					continue
 			else:
 				os.path.getsize(newstring)
-				logOutput("File "+newstring+" already exists",logfile)
+				logOutput("File "+newstring+" already exists",params)
 		except:
 			#If it isn't, try converting it
 			try:
-				os.system("HandBrakeCLI -i '"+example+"' -o '"+newstring+"'")
+				os.system("HandBrakeCLI -i '"+example+"' -o '"+newstring+"' -O -Z iPad -f mp4 --encoder x264 --vb 400 -q 30")
 			except:
-				logOuput("Error converting file " +newstring,logfile)
+				logOuput("Error converting file " +newstring,params)
 				exit=True
 		#If something clearly went wrong with it, skip this conversion	
 		try: 
 			os.path.getsize(newstring)
 		except:
-			logOutput("Error opening file " +newstring,logfile)
+			logOutput("Error opening file " +newstring,params)
 			exit=True
 		#If you need to skip, leave	
 		if(exit==True):
 			continue
 	
-		if(max_size>0 and warningfile!=None):
+		if('max_size' in params and 'warningfile' in params):
 			#If the file isn't small enough, change the scale and reconvert until it fits.
-			if(os.path.getsize(newstring)>max_size):
-				logOutput("The file was big enough to generate a warning",logfile)
-				warningfile.write(newstring+"\n")
-		logOutput(newstring+"\t"+str(os.path.getsize(newstring)),logfile)
+			if(os.path.getsize(newstring)>params['max_size']):
+				logOutput("The file was big enough to generate a warning",params)
+				params['warningfile'].write(newstring+"\n")
+		logOutput(newstring+"\t"+str(os.path.getsize(newstring)),params)
 
