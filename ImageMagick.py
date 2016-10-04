@@ -7,8 +7,9 @@ def logOutput(output,params):
 		params['logfile'].write(output+"\n")
 	else:
 		print output
-
-
+def logError(filename,params):
+	if('errorfile' in params):
+		params['errorfile'].write(filename+"\n")
 #Convert each example
 def convertImage(examples,params):
 	for example in examples:
@@ -53,12 +54,14 @@ def convertImage(examples,params):
 				os.system("convert '"+example+"' '"+newstring+"'")
 			except:
 				logOuput("Error converting file " +newstring,params)
+				logError(example,params)
 				exit=True
 		#If something clearly went wrong with it, skip this conversion	
 		try: 
 			os.path.getsize(newstring)
 		except:
 			logOutput("Error opening file " +newstring,params)
+			logError(example,params)
 			exit=True
 		#If you need to skip, leave	
 		if(exit==True):
@@ -74,6 +77,7 @@ def convertImage(examples,params):
 					os.system("convert '"+example+"' -resize "+str(100*scale)+"% '"+ newstring+"'")
 				except:
 					logOutput("error dealing with file: "+example,params)
+					logError(example,params)
 					exit=True
 		logOutput(newstring+"\t"+str(os.path.getsize(newstring)),params)
 

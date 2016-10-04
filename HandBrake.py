@@ -6,7 +6,9 @@ def logOutput(output,params):
 		params['logfile'].write(output+"\n")
 	else:
 		print output
-
+def logError(filename,params):
+	if('errorfile' in params):
+		params['errorfile'].write(filename+"\n")
 def convertVideo(examples,params):
 	for example in examples:
 	
@@ -48,12 +50,14 @@ def convertVideo(examples,params):
 				os.system("HandBrakeCLI -i '"+example+"' -o '"+newstring+"' -O -Z iPad -f mp4 --encoder x264 --vb 400 -q 30")
 			except:
 				logOuput("Error converting file " +newstring,params)
+				logError(example,params)
 				exit=True
 		#If something clearly went wrong with it, skip this conversion	
 		try: 
 			os.path.getsize(newstring)
 		except:
 			logOutput("Error opening file " +newstring,params)
+			logError(example,params)
 			exit=True
 		#If you need to skip, leave	
 		if(exit==True):

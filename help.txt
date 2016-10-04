@@ -2,6 +2,7 @@ Usage: python ContentConverter.py [flags] inputDirectory"
 
 -h = help                                    | display this help message
 -l filename = log output to given file       | default = print output to console
+-ef filename = log failed files to filename  | default = no logging
 -i format = input format                     | default ='.tif' or '.tiff'. If -v is on, default '.mpeg'
 -o format = output format                    |default = '.jpg'. If -v, default ='.m4v'
 -s integer = max size                        | default = -1, or no rescaling
