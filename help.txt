@@ -4,10 +4,12 @@ Usage: python ContentConverter.py [flags] inputDirectory"
 -l filename = log output to given file       | default = print output to console
 -ef filename = log failed files to filename  | default = no logging
 -i format = input format                     | default ='.tif' or '.tiff'. If -v is on, default '.mpeg'
--o format = output format                    |default = '.jpg'. If -v, default ='.m4v'
+-o format = output format                    | default = '.jpg'. If -v, default ='.m4v'
 -s integer = max size                        | default = -1, or no rescaling
 -nr = no rescale                             | default = rescale to max size
--v = video                                   | Specifies file as a video file, for HandBrake
+-v = video                                   | Specifies file as a video file, for ffmpeg
 -a = audio				     | Specifies file as an audio file, for ffmpeg
+-p = pdf				     | Specifies file as a pdf, for ghostscript
 -sw filename = log large files to given file | default = no logging
 -standard = Archive standard                 | use standard settings based on format
+-args args = pass args to utility	     | default = no extra args to ffmpeg, ghostscript

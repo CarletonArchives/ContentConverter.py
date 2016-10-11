@@ -20,16 +20,21 @@ import PDFCompress as pdf
 #-nr = no rescale | default = rescale to max size
 #-v = video | Specifies file as a video file, for HandBrake
 #-a = audio | Specifies file as audio, for ffmpeg
+#-p = pdf | Specifies file as pdf, for ghostscript
 #-sw filename = log large files to given file | default = no logging
+#-ef filename = log errors to given file | default = no logging
+#-standard = use archive standard web compression settings
+#-args = extra args | grab extra args for ffmpeg, ghostscript
 
 
 #TODO: 
-#Add format options, .pdf, .docx
-#Change Video to ffmpeg
+#Add format options: .docx, .xls
 #Clean up -nr flag
-#Figure out standard video and audio options
+#Figure out standard video, audio, and pdf options
 #Test, Test, Test
-#More?
+#Stop compressing small files?
+#More? Esp. w/ ImageMagick
+#Maybe some verbosity?
 
 #Known Bugs:
 #Will not convert anything with a ' in the filename.
