@@ -4,9 +4,8 @@ import sys
 import re
 import imghdr
 import math
-import HandBrake as HB
 import ffmpeg as fmpg
-
+import PDFCompress as pdf
 #Python program to batch convert files from various multimedia formats to other multimedia formats.
 
 #Syntax is:
@@ -93,14 +92,16 @@ def grabFlag(args,flag,fields,defaults,maxargs):
 #The flags. First, check if it is audio, video, or picture
 stuff=grabFlag(stuff,"-v",['type','extension','outextension'],['video','.mpeg','.m4v'],0) #Check -v flag
 stuff=grabFlag(stuff,"-a",['type','extension','outextension'],['audio','.wav','.mp3'],0) #Check -a flag
-
+stuff=grabFlag(stuff,"-p",['type','extension','outextension'],['pdf','.pdf','.pdf'],0) #Check -p flag
 if('type' not in params):
-	stuff=grabFlag(stuff,"-standard",['max_size','outextension','rescale'],[100000,'.jpg',True],0) #Grab the -standard flag
+	stuff=grabFlag(stuff,"-standard",['max_size','outextension','rescale','extra_args'],[100000,'.jpg',True],0) #Grab the -standard flag
+elif (params['type']=='pdf'):
+	stuff=grabFlag(stuff,"-standard",['max_size','warningfile','errorfile','extra_args'],[20000000,'toobig.out','errors.txt',"-dColorImageDownsampleType=/Bicubic -dColorImageResolution=60 -dGrayImageDownsampleType=/Bicubic -dGrayImageResolution=60 -dMonoImageDownsampleType=/Bicubic -dMonoImageResolution=60"],0) #For Pdfs
 elif (params['type']=='video'):
-	stuff=grabFlag(stuff,"-standard",['max_size','outextension','warningfile'],[100000000,'.m4v','toobig.out'],0) #For video
+	stuff=grabFlag(stuff,"-standard",['max_size','outextension','warningfile','extra_args'],[100000000,'.m4v','toobig.out',' -strict -2 -crf 37.5 -loglevel panic'],0) #For video
 elif (params['type']=='audio'):
-	stuff=grabFlag(stuff,"-standard",['max_size','outextension','warningfile'],[10,'.mp3','toobig.out'],0) #And for audio
-
+	stuff=grabFlag(stuff,"-standard",['max_size','outextension','warningfile'],[100000000,'.mp3','toobig.out'],0) #And for audio
+print stuff
 stuff=grabFlag(stuff,"-s",['max_size'],[None],1) #Grab the -s flag
 stuff=grabFlag(stuff,"-i",['extension'],[None],1) #Grab the -i flag
 stuff=grabFlag(stuff,"-o",['outextension'],[None],1) #Grab the -o flag
@@ -110,7 +111,6 @@ stuff=grabFlag(stuff,"-ef",['errorfile'],[None],1) #Grab the -ef flag
 stuff=grabFlag(stuff,"-args",['extra_args'],[None],1) #Grab extra args for ffmpeg??
 if('extra_args' not in params):
 	params['extra_args']=''
-print stuff
 #Display help message
 if("-h" in stuff):
 	help=open("help.txt","r")
@@ -176,9 +176,12 @@ for root,dirs,files in os.walk(top):
 			examples.append(root+"/"+test)
 #Pick the conversion tool based on type.
 if('type' in params):
-	if('type'=='video'):
-		HB.convertVideo(examples,params)
-	else:
+	if(params['type']=='video'):
+		fmpg.convertAudio(examples,params)
+	elif(params['type']=='pdf'):
+		pdf.compressPDF(examples,params)
+	elif(params['type']=='audio'):
 		fmpg.convertAudio(examples,params)
 else:
+
 	IM.convertImage(examples,params)
