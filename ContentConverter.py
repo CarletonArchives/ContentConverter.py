@@ -99,7 +99,7 @@ stuff=grabFlag(stuff,"-v",['type','extension','outextension'],['video','.mpeg','
 stuff=grabFlag(stuff,"-a",['type','extension','outextension'],['audio','.wav','.mp3'],0) #Check -a flag
 stuff=grabFlag(stuff,"-p",['type','extension','outextension'],['pdf','.pdf','.pdf'],0) #Check -p flag
 if('type' not in params):
-	stuff=grabFlag(stuff,"-standard",['max_size','outextension','rescale'],[100000,'.jpg',True],0) #Grab the -standard flag
+	stuff=grabFlag(stuff,"-standard",['max_size','outextension','rescale'],[100000,'.jpg',False],0) #Grab the -standard flag
 elif (params['type']=='pdf'):
 	stuff=grabFlag(stuff,"-standard",['max_size','warningfile','errorfile','extra_args'],[20000000,'toobig.out','errors.txt',"-dColorImageDownsampleType=/Bicubic -dColorImageResolution=60 -dGrayImageDownsampleType=/Bicubic -dGrayImageResolution=60 -dMonoImageDownsampleType=/Bicubic -dMonoImageResolution=60"],0) #For Pdfs
 elif (params['type']=='video'):
