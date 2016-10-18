@@ -30,11 +30,11 @@ import PDFCompress as pdf
 #TODO: 
 #Add format options: .docx, .xls
 #Clean up -nr flag
-#Figure out standard video, audio, and pdf options
-#Test, Test, Test
+#Read in files to convert from data file?
 #Stop compressing small files?
 #More? Esp. w/ ImageMagick
 #Maybe some verbosity?
+#Test, Test, Test
 
 #Known Bugs:
 #Will not convert anything with a ' in the filename.
@@ -99,7 +99,7 @@ stuff=grabFlag(stuff,"-v",['type','extension','outextension'],['video','.mpeg','
 stuff=grabFlag(stuff,"-a",['type','extension','outextension'],['audio','.wav','.mp3'],0) #Check -a flag
 stuff=grabFlag(stuff,"-p",['type','extension','outextension'],['pdf','.pdf','.pdf'],0) #Check -p flag
 if('type' not in params):
-	stuff=grabFlag(stuff,"-standard",['max_size','outextension','rescale','extra_args'],[100000,'.jpg',True],0) #Grab the -standard flag
+	stuff=grabFlag(stuff,"-standard",['max_size','outextension','rescale'],[100000,'.jpg',True],0) #Grab the -standard flag
 elif (params['type']=='pdf'):
 	stuff=grabFlag(stuff,"-standard",['max_size','warningfile','errorfile','extra_args'],[20000000,'toobig.out','errors.txt',"-dColorImageDownsampleType=/Bicubic -dColorImageResolution=60 -dGrayImageDownsampleType=/Bicubic -dGrayImageResolution=60 -dMonoImageDownsampleType=/Bicubic -dMonoImageResolution=60"],0) #For Pdfs
 elif (params['type']=='video'):
@@ -126,7 +126,7 @@ if("-h" in stuff):
 #Check the -nr flag
 if("-nr" in stuff):
 	stuff.remove("-nr")
-	rescale=False
+	params['rescale']=False
 else:
 	rescale=True
 	params['rescale']=True

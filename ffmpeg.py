@@ -23,8 +23,8 @@ def convertAudio(examples,params):
 		else:
 			newstring=example+params['outextension']
 		#Check for bag structure, if so, place in dips.
-		if('/data/originals' in newstring):
-			newstring=newstring.replace('/data/originals','/data/dips',1)
+		if('/originals' in newstring):
+			newstring=newstring.replace('/originals','/dips',1)
 			newdirs=newstring.split('/')
 			newpath=""
 			#This logic mirrors directories in originals into dips.
@@ -36,7 +36,8 @@ def convertAudio(examples,params):
 					os.chdir(params['top'])
 				except:
 					os.mkdir(newpath)
-		#Skip if the file is already converted to the required specs.
+		elif (params['extension']==params['outextension'] and '/dips' not in newstring):
+			newstring=newstring.replace(params['outextension'],"___2"+params['outextension'])
 
 		#Bit rate checking goes here. AHHHH!
 		if(params['type']=='video' and params['max_size']>0):
@@ -50,6 +51,8 @@ def convertAudio(examples,params):
 					continue
 			except:
 				logOutput("Could not guess bit rate for "+newstring,params)
+
+		#Skip if the file is already converted to the required specs.		
 		try:
 			if('max_size' in params):
 				if(os.path.getsize(newstring)<params['max_size']):

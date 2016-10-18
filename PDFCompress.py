@@ -21,8 +21,8 @@ def compressPDF(examples,params):
 		params['extension']='.pdf'
 		params['outextension']='.pdf'
 		newstring=example.replace(params['extension'],params['outextension'])
-		if('/data/originals' in newstring):
-			newstring=newstring.replace('/data/originals','/data/dips',1)
+		if('/originals' in newstring):
+			newstring=newstring.replace('/originals','/dips',1)
 			newdirs=newstring.split('/')
 			newpath=""
 			for i in range(0,len(newdirs)-1):
@@ -34,10 +34,10 @@ def compressPDF(examples,params):
 				except:
 					os.mkdir(newpath)
 		else:
-			if('errorfile' in params):
+			if('errorfile' in params and '/dips' not in newstring):
 				logError(example,params)
 				continue
-			else:
+			elif('/dips' not in newstring):
 				newstring=newstring.replace('.pdf','___2.pdf')
 		#Skip if the file is already converted
 		try:
@@ -52,9 +52,12 @@ def compressPDF(examples,params):
 		except:
 			#If it isn't, try converting it
 			try:
-				print newstring
-				os.system("gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=pdfwrite -dCompatibilityLevel=1.3 -dPDFSETTINGS=/screen -dEmbedAllFonts=true -dSubsetFonts=true "+params['extra_args']+" -sOutputFile='"+newstring+"' '"+example+"'")
-
+				ret=os.system("gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=pdfwrite -dCompatibilityLevel=1.3 -dPDFSETTINGS=/screen "+params['extra_args']+" -sOutputFile='"+newstring+"' '"+example+"'")
+				print ret
+				if (ret!=0):
+					logOutput("Error converting file " +newstring,params)
+					logError(example,params)
+					exit=True
 			except:
 				logOutput("Error converting file " +newstring,params)
 				logError(example,params)

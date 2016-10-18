@@ -2,6 +2,7 @@ import re
 import os
 import sys
 import math
+import subprocess
 def logOutput(output,params):
 	if('logfile' in params):
 		params['logfile'].write(output+"\n")
@@ -26,8 +27,8 @@ def convertImage(examples,params):
 	
 		else:
 			newstring=example.replace(params['extension'],params['outextension'])
-		if('/data/originals' in newstring):
-			newstring=newstring.replace('/data/originals','/data/dips',1)
+		if('/originals' in newstring):
+			newstring=newstring.replace('/originals','/dips',1)
 			newdirs=newstring.split('/')
 			newpath=""
 			for i in range(0,len(newdirs)-1):
@@ -38,6 +39,8 @@ def convertImage(examples,params):
 					os.chdir(params['top'])
 				except:
 					os.mkdir(newpath)
+		elif (params['extension']==params['outextension'] and '/dips' not in newstring):
+			newstring=newstring.replace(params['outextension'],"___2"+params['outextension'])
 		#Skip if the file is already converted
 		try:
 			if('max_size' in params):
@@ -51,9 +54,10 @@ def convertImage(examples,params):
 		except:
 			#If it isn't, try converting it
 			try:
-				os.system("convert '"+example+"' '"+newstring+"'")
+				command="convert '"+example.replace("'","'\\''")+"' '"+newstring.replace("'","'\\''")+"'"
+				os.system(command)
 			except:
-				logOuput("Error converting file " +newstring,params)
+				logOutput("Error converting file " +newstring,params)
 				logError(example,params)
 				exit=True
 		#If something clearly went wrong with it, skip this conversion	
@@ -73,11 +77,14 @@ def convertImage(examples,params):
 			while(os.path.getsize(newstring)>params['max_size'] and exit==False):
 				scale = scale*math.sqrt(params['max_size']*1.0/os.path.getsize(newstring))
 				logOutput("Scaling at "+str(math.sqrt(scale))+" times original",params)
-				try:		
-					os.system("convert '"+example+"' -resize "+str(100*scale)+"% '"+ newstring+"'")
+				try:	
+					command = "convert '"+example.replace("'","'\\''")+"' -resize "+str(100*scale)+"% '"+newstring.replace("'","'\\''")+"'"
+					os.system(command)
 				except:
 					logOutput("error dealing with file: "+example,params)
 					logError(example,params)
+					exit=True
+				if(params['rescale']!=True):
 					exit=True
 		logOutput(newstring+"\t"+str(os.path.getsize(newstring)),params)
 
