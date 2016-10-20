@@ -58,6 +58,7 @@ def compressPDF(examples,params):
 					logOutput("Error converting file " +newstring,params)
 					logError(example,params)
 					exit=True
+					continue
 			except:
 				logOutput("Error converting file " +newstring,params)
 				logError(example,params)

@@ -37,7 +37,7 @@ import PDFCompress as pdf
 #Test, Test, Test
 
 #Known Bugs:
-#Will not convert anything with a ' in the filename.
+#Will not convert anything with a ' in the filename on non-images. Also, tons of problems with -f
 
 
 
@@ -114,7 +114,7 @@ stuff=grabFlag(stuff,"-sw",['warningfile'],[None],1) #Grab the -sw flag
 stuff=grabFlag(stuff,"-l",['logfile'],[None],1) #Grab the -l flag
 stuff=grabFlag(stuff,"-ef",['errorfile'],[None],1) #Grab the -ef flag
 stuff=grabFlag(stuff,"-args",['extra_args'],[None],1) #Grab extra args for ffmpeg??
-stuff=grabFlag(stuff,"-f",['usefile'],[None],1)
+stuff=grabFlag(stuff,"-f",['usefile'],['in.txt'],0)
 if('extra_args' not in params):
 	params['extra_args']=''
 #Display help message
@@ -131,21 +131,30 @@ if("-nr" in stuff):
 else:
 	rescale=True
 	params['rescale']=True
-top=sys.argv[1]
+if('usefile' not in params):
+	top=sys.argv[1]
+else:
+
+	params['usefile']=sys.argv[1]
+	top="/"
 params['top']=top
 print top
 print params
+if('usefile' in params): #Grab the relevant file names before there's any chance of modifying them
+	try:
+		FileFile=open(params['usefile'],"rb")
+	except:
+		print "Can't open file list"
+		sys.exit()
+	lines=[]
+	for line in FileFile:
+		lines.append(line[:-1])
+	FileFile.close()
 if ('max_size' in params): #Make sure that the size is an integer
 	try:
 		params['max_size']=int(params['max_size'])
 	except:
 		print "Size given was not an int"
-		sys.exit()
-if ('warningfile' in params): #And that the oversize log file exists
-	try:
-		params['warningfile']=open(params['warningfile'],"w")
-	except:
-		print "Invalid file listed for size warnings"
 		sys.exit()
 if('logfile' in params): #And the normal log file too.
 	try:
@@ -155,10 +164,17 @@ if('logfile' in params): #And the normal log file too.
 		sys.exit()
 if('errorfile' in params): #And the file for errors.
 	try:
-		params['errorfile']=open(params['errorfile'],"w")
+		params['errorfile']=open(params['errorfile'],"wb")
 	except:
 		print "Invalid error file"
 		sys.exit()
+if ('warningfile' in params): #Make sure that the oversize log file exists
+	try:
+		params['warningfile']=open(params['warningfile'],"w")
+	except:
+		print "Invalid file listed for size warnings"
+		sys.exit()
+
 #If they are bad at typing directories, don't bother doing anything.
 try:
 	os.chdir(top)
@@ -182,30 +198,20 @@ if('usefile'not in params):
 				logOutput("Found "+root+"/"+test+" with correct type",params)
 				examples.append(root+"/"+test)
 else:
-	try:
-		FileFile=open(params['usefile'],"rb")
-	except:
-		print "Can't open file list"
-		sys.exit()
-	lines=[]
-	for line in FileFile:
-		lines.append(line[:-1])
-	FileFile.close()
+
 	for line in lines:
 		try:
 			if('extension' not in params):
 				try:
-					temp=imghdr.what(root+"/"+test)
+					temp=imghdr.what(line)
 				except:
 					temp=''
 				if temp=='tiff':
 					logOutput("Found "+line+" with correct type",params)
 					examples.append(line)
 			elif (line.endswith(params['extension']) and line.find('/data/meta')==-1):
-				print "here\n"
 				logOutput("Found "+line+" with correct type",params)
 				examples.append(line)
-				print examples
 		except:
 			logOutput("Did not find file "+line+" with correct type!\n",params)
 #Pick the conversion tool based on type.
@@ -219,3 +225,9 @@ if('type' in params):
 else:
 
 	IM.convertImage(examples,params)
+if 'logfile' in params:
+	params['logfile'].close()
+if 'errorfile' in params:
+	params['errorfile'].close()
+if 'warningfile' in params:
+	params['warningfile'].close()
