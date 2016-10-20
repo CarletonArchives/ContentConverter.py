@@ -114,6 +114,7 @@ stuff=grabFlag(stuff,"-sw",['warningfile'],[None],1) #Grab the -sw flag
 stuff=grabFlag(stuff,"-l",['logfile'],[None],1) #Grab the -l flag
 stuff=grabFlag(stuff,"-ef",['errorfile'],[None],1) #Grab the -ef flag
 stuff=grabFlag(stuff,"-args",['extra_args'],[None],1) #Grab extra args for ffmpeg??
+stuff=grabFlag(stuff,"-f",['usefile'],[None],1)
 if('extra_args' not in params):
 	params['extra_args']=''
 #Display help message
@@ -166,19 +167,47 @@ except:
 	sys.exit()
 #Otherwise, walk through directory tree, and add .tiffs to examples
 #This section preserves some old functionality. For images, it was trained to look at the header using imghdr, in addition to the extension. Probably should be removed or changed to a flag.
-for root,dirs,files in os.walk(top):
-	for test in files:
-		if('extension' not in params):
-			try:
-				temp=imghdr.what(root+"/"+test)
-			except:
-				temp=''
-			if temp=='tiff':
+if('usefile'not in params):
+	for root,dirs,files in os.walk(top):
+		for test in files:
+			if('extension' not in params):
+				try:
+					temp=imghdr.what(root+"/"+test)
+				except:
+					temp=''
+				if temp=='tiff':
+					logOutput("Found "+root+"/"+test+" with correct type",params)
+					examples.append(root+"/"+test)
+			elif (test.endswith(params['extension']) and (root+"/"+test).find('/data/meta')==-1):
 				logOutput("Found "+root+"/"+test+" with correct type",params)
 				examples.append(root+"/"+test)
-		elif (test.endswith(params['extension']) and (root+"/"+test).find('/data/meta')==-1):
-			logOutput("Found "+root+"/"+test+" with correct type",params)
-			examples.append(root+"/"+test)
+else:
+	try:
+		FileFile=open(params['usefile'],"rb")
+	except:
+		print "Can't open file list"
+		sys.exit()
+	lines=[]
+	for line in FileFile:
+		lines.append(line[:-1])
+	FileFile.close()
+	for line in lines:
+		try:
+			if('extension' not in params):
+				try:
+					temp=imghdr.what(root+"/"+test)
+				except:
+					temp=''
+				if temp=='tiff':
+					logOutput("Found "+line+" with correct type",params)
+					examples.append(line)
+			elif (line.endswith(params['extension']) and line.find('/data/meta')==-1):
+				print "here\n"
+				logOutput("Found "+line+" with correct type",params)
+				examples.append(line)
+				print examples
+		except:
+			logOutput("Did not find file "+line+" with correct type!\n",params)
 #Pick the conversion tool based on type.
 if('type' in params):
 	if(params['type']=='video'):
