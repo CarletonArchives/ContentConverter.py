@@ -58,32 +58,36 @@ def grabFlag(args,flag,fields,defaults,maxargs):
 	if(flag in args):
 		values=[]
 		i=args.index(flag)+1
-		while((args[i][0]!="-") if i<len(args) else False):
+		while(((args[i][0]!="-") if i<len(args) else False) and (i-args.index(flag)<=maxargs)):
 			values.append(args[i])
 			i+=1
 		i-=1
+		if(i-args.index(flag)>maxargs):
+			print flag + " flag has too many arguments "+str(maxargs)+" required, "+str(len(values))+" given"
+			sys.exit()
 		back=args.index(flag)
 		while(i!=back-1):
 			args.pop(i)
 			i-=1
-		if(maxargs>=0 and len(values)>maxargs):
-			print flag + " flag has too many arguments! "+maxargs+" required, "+len(values)+" given"
+		if(maxargs>0 and len(values)>maxargs):
+			print flag + " flag has too many arguments! "+str(maxargs)+" required, "+str(len(values))+" given"
 			sys.exit()
 		if len(fields)>len(values):
 			i=0
-			for value in values:
-				params[fields[i]]=value
-				i+=1
+			if(maxargs!=0):
+				for value in values:
+					params[fields[i]]=value
+					i+=1
 			while(i<len(fields)):
 				if(defaults[i]!=None):
 					params[fields[i]]=defaults[i]
 				i+=1
-		if len(fields)==len(values):
+		elif len(fields)==len(values):
 			i=0
 			for value in values:
 				params[fields[i]]=value
 				i+=1
-		if len(fields)<len(values):
+		elif len(fields)<len(values):
 			i=0
 			for field in fields:
 				params[field]=values[i]
@@ -93,6 +97,9 @@ def grabFlag(args,flag,fields,defaults,maxargs):
 			while(i<len(values)):
 				params[fields[spot]].append(values[i])
 				i+=1
+		else:
+			print "Something is very messed up.\n"
+			sys.exit() 
 	return args
 #The flags. First, check if it is audio, video, or picture
 stuff=grabFlag(stuff,"-v",['type','extension','outextension'],['video','.mpeg','.m4v'],0) #Check -v flag
@@ -179,7 +186,7 @@ if ('warningfile' in params): #Make sure that the oversize log file exists
 try:
 	os.chdir(top)
 except:
-	logOutput("Directory "+str(top)+" not found.",params)
+	logOutput("Directory "+str(top)+" not found. Did you exceed the max arguments for a flag?",params)
 	sys.exit()
 #Otherwise, walk through directory tree, and add .tiffs to examples
 #This section preserves some old functionality. For images, it was trained to look at the header using imghdr, in addition to the extension. Probably should be removed or changed to a flag.
