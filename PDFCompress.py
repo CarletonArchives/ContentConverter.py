@@ -49,11 +49,11 @@ def compressPDF(examples,params):
 			else:
 				os.path.getsize(newstring)
 				logOutput("File "+newstring+" already exists",params)
+
 		except:
 			#If it isn't, try converting it
 			try:
-				ret=os.system("gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=pdfwrite -dCompatibilityLevel=1.3 -dPDFSETTINGS=/screen "+params['extra_args']+" -sOutputFile='"+newstring+"' '"+example+"'")
-				print ret
+				ret=os.system("gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite "+params['extra_args']+" -sOutputFile='"+newstring+"' '"+example+"'")
 				if (ret!=0):
 					logOutput("Error converting file " +newstring,params)
 					logError(example,params)

@@ -106,13 +106,13 @@ stuff=grabFlag(stuff,"-v",['type','extension','outextension'],['video','.mpeg','
 stuff=grabFlag(stuff,"-a",['type','extension','outextension'],['audio','.wav','.mp3'],0) #Check -a flag
 stuff=grabFlag(stuff,"-p",['type','extension','outextension'],['pdf','.pdf','.pdf'],0) #Check -p flag
 if('type' not in params):
-	stuff=grabFlag(stuff,"-standard",['max_size','outextension','rescale'],[100000,'.jpg',False],0) #Grab the -standard flag
+	stuff=grabFlag(stuff,"-standard",['max_size','outextension','rescale','errorfile'],[100000,'.jpg',False,'errors.txt'],0) #Grab the -standard flag
 elif (params['type']=='pdf'):
 	stuff=grabFlag(stuff,"-standard",['max_size','warningfile','errorfile','extra_args'],[20000000,'toobig.out','errors.txt',"-dColorImageDownsampleType=/Bicubic -dColorImageResolution=60 -dGrayImageDownsampleType=/Bicubic -dGrayImageResolution=60 -dMonoImageDownsampleType=/Bicubic -dMonoImageResolution=60"],0) #For Pdfs
 elif (params['type']=='video'):
-	stuff=grabFlag(stuff,"-standard",['max_size','outextension','warningfile','extra_args'],[100000000,'.m4v','toobig.out',' -strict -2 -crf 37.5 -loglevel panic'],0) #For video
+	stuff=grabFlag(stuff,"-standard",['max_size','outextension','warningfile','extra_args','errorfile'],[100000000,'.m4v','toobig.out',' -strict -2 -crf 37.5 -loglevel panic','errors.txt'],0) #For video
 elif (params['type']=='audio'):
-	stuff=grabFlag(stuff,"-standard",['max_size','outextension','warningfile'],[100000000,'.mp3','toobig.out'],0) #And for audio
+	stuff=grabFlag(stuff,"-standard",['max_size','outextension','warningfile','errorfile'],[100000000,'.mp3','toobig.out','errors.txt'],0) #And for audio
 print stuff
 stuff=grabFlag(stuff,"-s",['max_size'],[None],1) #Grab the -s flag
 stuff=grabFlag(stuff,"-i",['extension'],[None],1) #Grab the -i flag
@@ -135,7 +135,7 @@ if("-h" in stuff):
 if("-nr" in stuff):
 	stuff.remove("-nr")
 	params['rescale']=False
-else:
+elif('rescale' not in params):
 	rescale=True
 	params['rescale']=True
 if('usefile' not in params):
@@ -193,17 +193,18 @@ except:
 if('usefile'not in params):
 	for root,dirs,files in os.walk(top):
 		for test in files:
-			if('extension' not in params):
-				try:
-					temp=imghdr.what(root+"/"+test)
-				except:
-					temp=''
-				if temp=='tiff':
+			if(test[:2]!="._"):
+				if('extension' not in params):
+					try:
+						temp=imghdr.what(root+"/"+test)
+					except:
+						temp=''
+					if temp=='tiff':
+						logOutput("Found "+root+"/"+test+" with correct type",params)
+						examples.append(root+"/"+test)
+				elif (test.endswith(params['extension']) and (root+"/"+test).find('/data/meta')==-1):
 					logOutput("Found "+root+"/"+test+" with correct type",params)
 					examples.append(root+"/"+test)
-			elif (test.endswith(params['extension']) and (root+"/"+test).find('/data/meta')==-1):
-				logOutput("Found "+root+"/"+test+" with correct type",params)
-				examples.append(root+"/"+test)
 else:
 
 	for line in lines:

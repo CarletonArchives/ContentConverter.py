@@ -39,8 +39,9 @@ def convertImage(examples,params):
 					os.chdir(params['top'])
 				except:
 					os.mkdir(newpath)
-		elif (params['extension']==params['outextension'] and '/dips' not in newstring):
-			newstring=newstring.replace(params['outextension'],"___2"+params['outextension'])
+		elif ('extension' in params):
+			if(params['extension']==params['outextension'] and '/dips' not in newstring):
+				newstring=newstring.replace(params['outextension'],"___2"+params['outextension'])
 		#Skip if the file is already converted
 		try:
 			if('max_size' in params):
