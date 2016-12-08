@@ -234,5 +234,5 @@ def convertBatch(stuff):
 		params['errorfile'].close()
 	if 'warningfile' in params:
 		params['warningfile'].close()
-if(sys.argv[0]=="BatchConverter.py"):
+if("BatchConverter.py"in sys.argv[0]):
 	convertBatch(sys.argv)
