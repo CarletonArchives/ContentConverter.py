@@ -7,14 +7,16 @@ def logOutput(output,params):
 	if('logfile' in params):
 		params['logfile'].write(output+"\n")
 	else:
-		print output
+		print "\n"+ output
 def logError(filename,params):
 	if('errorfile' in params):
 		params['errorfile'].write(filename+"\n")
 #Convert each example
 def convertImage(examples,params):
+	count=0
 	for example in examples:
-	
+		count+=1
+		sys.stdout.write("\rProcessing file "+str(count)+" of "+str(len(examples)))
 		exit=False
 		#Find the new filename, by replacing .tif or .tiff, or adding .jpg
 		if('extension' not in params):
@@ -52,13 +54,15 @@ def convertImage(examples,params):
 			else:
 				os.path.getsize(newstring)
 				logOutput("File "+newstring+" already exists",params)
+				exit=True
 		except:
 			#If it isn't, try converting it
 			try:
-				command="convert '"+example.replace("'","'\\''")+"' '"+newstring.replace("'","'\\''")+"'"
+				command="convert -quiet '"+example.replace("'","'\\''")+"' '"+newstring.replace("'","'\\''")+"'"
 				os.system(command)
 			except:
 				logOutput("Error converting file " +newstring,params)
+				print "\n"+ "Error converting file " +newstring
 				logError(example,params)
 				exit=True
 		#If something clearly went wrong with it, skip this conversion	
@@ -66,6 +70,7 @@ def convertImage(examples,params):
 			os.path.getsize(newstring)
 		except:
 			logOutput("Error opening file " +newstring,params)
+			print "\n"+ "Error opening file " +newstring
 			logError(example,params)
 			exit=True
 		#If you need to skip, leave	
@@ -76,13 +81,14 @@ def convertImage(examples,params):
 			scale=1
 			#If the file isn't small enough, change the scale and reconvert until it fits.
 			while(os.path.getsize(newstring)>params['max_size'] and exit==False):
-				scale = scale*math.sqrt(params['max_size']*1.0/os.path.getsize(newstring))
+				scale = scale*((params['max_size']-50000)*1.0)/os.path.getsize(newstring)
 				logOutput("Scaling at "+str(math.sqrt(scale))+" times original",params)
 				try:	
-					command = "convert '"+example.replace("'","'\\''")+"' -resize "+str(100*scale)+"% '"+newstring.replace("'","'\\''")+"'"
+					command = "convert -quiet '"+example.replace("'","'\\''")+"' -resize "+str(100*scale)+"% '"+newstring.replace("'","'\\''")+"'"
 					os.system(command)
 				except:
 					logOutput("error dealing with file: "+example,params)
+					print "\n"+ "error dealing with file: "+example
 					logError(example,params)
 					exit=True
 				if(params['rescale']!=True):

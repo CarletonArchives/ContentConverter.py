@@ -8,14 +8,16 @@ def logOutput(output,params):
 	if('logfile' in params):
 		params['logfile'].write(output+"\n")
 	else:
-		print output
+		print "\n"+ output
 def logError(filename,params):
 	if('errorfile' in params):
 		params['errorfile'].write(filename+"\n")
 #Convert each example
 def compressPDF(examples,params):
+	count=0
 	for example in examples:
-	
+		count+=1
+		sys.stdout.write("\rProcessing file "+str(count)+" of "+str(len(examples)))
 		exit=False
 		#Always converts from pdf to pdf
 		params['extension']='.pdf'
@@ -53,14 +55,16 @@ def compressPDF(examples,params):
 		except:
 			#If it isn't, try converting it
 			try:
-				ret=os.system("gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite "+params['extra_args']+" -sOutputFile='"+newstring+"' '"+example+"'")
+				ret=os.system("gs -q -sstdout=%stderr -dNOPAUSE -dBATCH -sDEVICE=pdfwrite "+params['extra_args']+" -sOutputFile='"+newstring+"' '"+example+"' 2>/dev/null")
 				if (ret!=0):
 					logOutput("Error converting file " +newstring,params)
+					print "\n"+ "Error converting file " +newstring
 					logError(example,params)
 					exit=True
 					continue
 			except:
 				logOutput("Error converting file " +newstring,params)
+				print "\n"+ "Error converting file " +newstring
 				logError(example,params)
 				exit=True
 		#If something clearly went wrong with it, skip this conversion	
@@ -68,6 +72,7 @@ def compressPDF(examples,params):
 			os.path.getsize(newstring)
 		except:
 			logOutput("Error opening file " +newstring,params)
+			print "\n"+ "Error opening file " +newstring
 			logError(example,params)
 			exit=True
 		#If you need to skip, leave	

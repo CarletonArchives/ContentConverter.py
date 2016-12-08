@@ -47,10 +47,11 @@ def logOutput(output,params):
 		params['logfile'].write(output+"\n")
 	else:
 		print output
-params={}
-examples=[]
+
 stuff=sys.argv
 def convertBatch(stuff):
+	params={}
+	examples=[]
 	#Yes, I did write my own flag handler, and yes, I am a genuine idiot. But I don't care. This also allows me to set up defaults and stuff in the way I like.
 	#Look at the current calls for examples. Note that maxargs=-1 reads up to the next -flag structure in argv.
 	def grabFlag(args,flag,fields,defaults,maxargs):
@@ -105,14 +106,13 @@ def convertBatch(stuff):
 	stuff=grabFlag(stuff,"-a",['type','extension','outextension'],['audio','.wav','.mp3'],0) #Check -a flag
 	stuff=grabFlag(stuff,"-p",['type','extension','outextension'],['pdf','.pdf','.pdf'],0) #Check -p flag
 	if('type' not in params):
-		stuff=grabFlag(stuff,"-standard",['max_size','outextension','rescale','errorfile'],[100000,'.jpg',False,'errors.txt'],0) #Grab the -standard flag
+		stuff=grabFlag(stuff,"-standard",['max_size','outextension','rescale','errorfile'],[200000,'.jpg',False,'errors.txt'],0) #Grab the -standard flag
 	elif (params['type']=='pdf'):
 		stuff=grabFlag(stuff,"-standard",['max_size','warningfile','errorfile','extra_args'],[20000000,'toobig.out','errors.txt',"-dColorImageDownsampleType=/Bicubic -dColorImageResolution=60 -dGrayImageDownsampleType=/Bicubic -dGrayImageResolution=60 -dMonoImageDownsampleType=/Bicubic -dMonoImageResolution=60"],0) #For Pdfs
 	elif (params['type']=='video'):
-		stuff=grabFlag(stuff,"-standard",['max_size','outextension','warningfile','extra_args','errorfile'],[100000000,'.m4v','toobig.out',' -strict -2 -crf 37.5 -loglevel panic','errors.txt'],0) #For video
+		stuff=grabFlag(stuff,"-standard",['max_size','outextension','warningfile','extra_args','errorfile'],[100000000,'.m4v','toobig.out',' -strict -2 -crf 37.5','errors.txt'],0) #For video
 	elif (params['type']=='audio'):
 		stuff=grabFlag(stuff,"-standard",['max_size','outextension','warningfile','errorfile'],[100000000,'.mp3','toobig.out','errors.txt'],0) #And for audio
-	print stuff
 	stuff=grabFlag(stuff,"-s",['max_size'],[None],1) #Grab the -s flag
 	stuff=grabFlag(stuff,"-i",['extension'],[None],1) #Grab the -i flag
 	stuff=grabFlag(stuff,"-o",['outextension'],[None],1) #Grab the -o flag
@@ -144,8 +144,6 @@ def convertBatch(stuff):
 		params['usefile']=sys.argv[1]
 		top="/"
 	params['top']=top
-	print top
-	print params
 	if('usefile' in params): #Grab the relevant file names before there's any chance of modifying them
 		try:
 			FileFile=open(params['usefile'],"rb")
@@ -166,8 +164,8 @@ def convertBatch(stuff):
 		try:
 			params['logfile']=open(params['logfile'],"w")
 		except:
+			params.pop('logfile')
 			print "Invalid log file"
-			sys.exit()
 	if('errorfile' in params): #And the file for errors.
 		try:
 			params['errorfile']=open(params['errorfile'],"wb")
@@ -205,7 +203,6 @@ def convertBatch(stuff):
 						logOutput("Found "+root+"/"+test+" with correct type",params)
 						examples.append(root+"/"+test)
 	else:
-	
 		for line in lines:
 			try:
 				if('extension' not in params):
@@ -237,3 +234,5 @@ def convertBatch(stuff):
 		params['errorfile'].close()
 	if 'warningfile' in params:
 		params['warningfile'].close()
+if(sys.argv[0]=="BatchConverter.py"):
+	convertBatch(sys.argv)

@@ -6,14 +6,16 @@ def logOutput(output,params):
 	if('logfile' in params):
 		params['logfile'].write(output+"\n")
 	else:
-		print output
+		print "\n"+ output
 def logError(filename,params):
 	if('errorfile' in params):
 		params['errorfile'].write(filename+"\n")
 #This loop has way too many breaks within it for error handling. But it works, and does not miss anything, which is more important than size of code.
 def convertAudio(examples,params):
+	count=0
 	for example in examples:
-	
+		count+=1
+		sys.stdout.write("\rProcessing file "+str(count)+" of "+str(len(examples)))
 		exit=False
 		#Find the new filename, by replacing .tif or .tiff, or adding .jpg
 		if('extension' not in params):
@@ -65,9 +67,10 @@ def convertAudio(examples,params):
 		except:
 			#If it isn't, try converting it
 			try:
-				os.system("ffmpeg -i '"+example+"'" +params['extra_args']+" '"+newstring+"' ")
+				os.system("ffmpeg -loglevel panic -i '"+example+"'" +params['extra_args']+" '"+newstring+"' ")
 			except:
-				logOuput("Error converting file " +newstring,params)
+				logOutput("Error converting file " +newstring,params)
+				print "\n"+ "Error converting file " +newstring
 				logError(example,params)
 				exit=True
 		#If something clearly went wrong with it, skip this conversion	
@@ -75,6 +78,7 @@ def convertAudio(examples,params):
 			os.path.getsize(newstring)
 		except:
 			logOutput("Error opening file " +newstring,params)
+			print "\n"+ "Error opening file " +newstring
 			logError(example,params)
 			exit=True
 		#If you need to skip, leave	
@@ -85,6 +89,6 @@ def convertAudio(examples,params):
 			#If the file isn't small enough, post a warning.
 			if(os.path.getsize(newstring)>params['max_size']):
 				logOutput("The file was big enough to generate a warning",params)
-				params['warningfile'].write(example+"\n")
+				params['warningfile'].write(example)
 		logOutput(newstring+"\t"+str(os.path.getsize(newstring)),params)
 
