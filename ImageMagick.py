@@ -76,15 +76,15 @@ def convertImage(examples,params):
 		#If you need to skip, leave	
 		if(exit==True):
 			continue
-	
 		if('max_size' in params and 'rescale' in params):
 			scale=1
 			#If the file isn't small enough, change the scale and reconvert until it fits.
 			while(os.path.getsize(newstring)>params['max_size'] and exit==False):
+
 				scale = scale*((params['max_size']-50000)*1.0)/os.path.getsize(newstring)
-				logOutput("Scaling at "+str(math.sqrt(scale))+" times original",params)
+				logOutput("Scaling at "+str(scale)+" times original",params)
 				try:	
-					command = "convert -quiet '"+example.replace("'","'\\''")+"' -resize "+str(100*scale)+"% '"+newstring.replace("'","'\\''")+"'"
+					command = "convert -quiet '"+example.replace("'","'\\''")+"' -resize "+str(math.sqrt(10000*scale))+"% '"+newstring.replace("'","'\\''")+"'"
 					os.system(command)
 				except:
 					logOutput("error dealing with file: "+example,params)
