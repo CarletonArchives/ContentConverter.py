@@ -67,7 +67,7 @@ def convertAudio(examples,params):
 		except:
 			#If it isn't, try converting it
 			try:
-				os.system("ffmpeg -loglevel panic -i '"+example+"'" +params['extra_args']+" '"+newstring+"' ")
+				os.system("ffmpeg -loglevel panic -i '"+example+"' " +params['extra_args']+" '"+newstring+"' ")
 			except:
 				logOutput("Error converting file " +newstring,params)
 				print "\n"+ "Error converting file " +newstring

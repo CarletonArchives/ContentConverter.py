@@ -78,9 +78,11 @@ def convertImage(examples,params):
 			continue
 		if('max_size' in params and 'rescale' in params):
 			scale=1
+
+			if('Off' in params['rescale']):
+				exit=True
 			#If the file isn't small enough, change the scale and reconvert until it fits.
 			while(os.path.getsize(newstring)>params['max_size'] and exit==False):
-
 				scale = scale*((params['max_size']-50000)*1.0)/os.path.getsize(newstring)
 				logOutput("Scaling at "+str(scale)+" times original",params)
 				try:	
@@ -91,7 +93,8 @@ def convertImage(examples,params):
 					print "\n"+ "error dealing with file: "+example
 					logError(example,params)
 					exit=True
-				if(params['rescale']!=True):
+
+				if('Repeat' not in params['rescale']):
 					exit=True
 		logOutput(newstring+"\t"+str(os.path.getsize(newstring)),params)
 
