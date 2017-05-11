@@ -5,9 +5,10 @@ import re
 import shlex
 import ConfigParser
 
-here=os.getcwd()
-top=sys.argv[1]
+top=os.path.abspath(sys.argv[1])
 config=ConfigParser.RawConfigParser()
+os.chdir(os.path.split(sys.argv[0])[0])
+here=os.getcwd()
 config.read('contentConverterConfig.cfg')
 formats={}
 
