@@ -154,7 +154,8 @@ def convertBatch(stuff):
 		top=params['top']
 		params['extension']=params['input']
 		params['outextension']=params['output']
-		params['max_size']=int(params['max_size'])
+		if('max_size' in params):
+			params['max_size']=int(params['max_size'])
 		if('extra_args' not in params):
 			params['extra_args']=''
 	if('usefile' in params): #Grab the relevant file names before there's any chance of modifying them

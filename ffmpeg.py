@@ -13,9 +13,11 @@ def logError(filename,params):
 #This loop has way too many breaks within it for error handling. But it works, and does not miss anything, which is more important than size of code.
 def convertAudio(examples,params):
 	count=0
+	#print examples
 	for example in examples:
 		count+=1
 		sys.stdout.write("\rProcessing file "+str(count)+" of "+str(len(examples)))
+		sys.stdout.flush()
 		exit=False
 		#Find the new filename, by replacing .tif or .tiff, or adding .jpg
 		if('extension' not in params):
@@ -57,7 +59,7 @@ def convertAudio(examples,params):
 		#Skip if the file is already converted to the required specs.		
 		try:
 			if('max_size' in params):
-				if(os.path.getsize(newstring)<params['max_size']):
+				if(os.path.getsize(newstring)<params['max_size'] and params['max_size']>0):
 					logOutput("File "+newstring+" already exists",params)
 					exit=True
 					continue

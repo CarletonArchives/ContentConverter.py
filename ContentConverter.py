@@ -7,7 +7,8 @@ import ConfigParser
 
 top=os.path.abspath(sys.argv[1])
 config=ConfigParser.RawConfigParser()
-os.chdir(os.path.split(sys.argv[0])[0])
+if(os.path.split(sys.argv[0])[0]!=""):
+	os.chdir(os.path.split(sys.argv[0])[0])
 here=os.getcwd()
 config.read('contentConverterConfig.cfg')
 formats={}
