@@ -42,11 +42,12 @@ for root,dirs,files in os.walk(top):
 						params[item]=val
 				params['input']=filetype
 				params['top']=top
+				if('logfile' in params):
+					params['logfile']=open(params['logfile'],'w')
 				run.append(params)
 for thing in run:
-	try:
-		print "Starting conversion of format: "+thing['input']+" using arguments:"
-		print thing
+	#try:
+		print "Starting conversion of format: "+thing['input']
 		BatchConverter.convertBatch(thing)
 		print "\rProcessed files"
 		print "Conversion finished, cleaning up"
@@ -57,8 +58,8 @@ for thing in run:
 		os.system("cat toobig.out >> "+here+"/tooBig.txt")
 		os.system("rm toobig.out")
 		print "...............................\n"
-	except:
-		print "Error with format: "+thing['input']
+	#except:
+	#	print "Error with format: "+thing['input']
 out="Unused formats: "
 for word in newformats:
 	out+= word +" ; "

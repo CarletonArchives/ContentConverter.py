@@ -96,6 +96,66 @@ def logOutput(output,params):
 	else:
 		print output
 
+def logError(filename,params):
+	if('errorfile' in params):
+		params['errorfile'].write(filename+"\n")
+	else:
+		print("\nError with file "+filename)
+
+def makeNewFilePath(inPath,params):
+	outPath=inPath.replace(params['extension'],params['outextension'].split(";")[0])
+	if('/originals' in outPath):
+		outPath=outPath.replace('/originals','/dips',1)
+		dirsToAdd=outPath.split('/')
+		testPath=""
+		for i in range(0,len(dirsToAdd)-1):
+			testPath+=dirsToAdd[i]
+			testPath+="/"
+			try:
+				os.chdir(testPath)
+				os.chdir(params['top'])
+			except:
+				os.mkdir(testPath)
+	else:
+		if('strict' in params and '/dips' not in outPath):
+			if(params['strict']==True):
+				logError(inPath,params)
+				return False
+		elif (params['extension']==params['outextension'] and '/dips' not in outPath):
+			outPath=outPath.replace(params['outextension'],'___2'+params['outextension'])
+	return outPath
+
+#Converts or copies the file according to params['force']. Returns False if no change was made.
+def doFileOperation(inPath,outPath,checkFunc,compressFunc,copyFunc,params):
+	if('force' not in params):
+		params['force']='ifbigger'
+	#If we should always compress, do it.
+	if('always' in params['force']):
+		return compressFunc(inPath,outPath,params)
+	#If there is a valid output, skip
+	if(checkFunc(outPath,inPath,params)):
+		logOutput("File "+outPath+" already is valid, skipping",params)
+		return False
+	#If the input is a valid output, copy.
+	if(checkFunc(inPath,inPath,params)): #If we can just copy the original file
+		logOutput("File "+outPath+" is copied from original",params)
+		return copyFunc(inPath,outPath,params)
+	#Try a compression
+	if(not compressFunc(inPath,outPath,params)):
+		return False
+	#If the input is better than the output, copy
+	if((not checkFunc(outPath,inPath,params)) and checkFunc(inPath,None,params)):
+		logOutput("File "+outPath+" is copied from original",params)
+		return copyFunc(inPath,outPath,params)
+	#If the end result is good, exit
+	if(checkFunc(outPath,None,params)):
+		return True
+	#Else error.
+	logOutput("Error in output " +outPath,params)
+	print "\n"+ "Error in file " +outPath
+	logError(outPath,params)
+	return False
+
 stuff=sys.argv
 def convertBatch(stuff):
 	params={}
@@ -171,23 +231,26 @@ def convertBatch(stuff):
 		FileFile.close()
 
 	if('logfile' in params): #And the normal log file too.
-		try:
-			params['logfile']=open(params['logfile'],"w")
-		except:
-			params.pop('logfile')
-			print "Invalid log file"
+		if(not isinstance(params['logfile'],file)):
+			try:
+				params['logfile']=open(params['logfile'],"w")
+			except:
+				params.pop('logfile')
+				print "Invalid log file"
 	if('errorfile' in params): #And the file for errors.
-		try:
-			params['errorfile']=open(params['errorfile'],"wb")
-		except:
-			print "Invalid error file"
-			sys.exit()
+		if(not isinstance(params['errorfile'],file)):
+			try:
+				params['errorfile']=open(params['errorfile'],"wb")
+			except:
+				print "Invalid error file"
+				sys.exit()
 	if ('warningfile' in params): #Make sure that the oversize log file exists
-		try:
-			params['warningfile']=open(params['warningfile'],"w")
-		except:
-			print "Invalid file listed for oversize warnings"
-			sys.exit()
+		if(not isinstance(params['warningfile'],file)):
+			try:
+				params['warningfile']=open(params['warningfile'],"w")
+			except:
+				print "Invalid file listed for oversize warnings"
+				sys.exit()
 	
 	#If they are bad at typing directories, don't bother doing anything.
 	try:
@@ -210,6 +273,9 @@ def convertBatch(stuff):
 							logOutput("Found "+root+"/"+test+" with correct type",params)
 							examples.append(root+"/"+test)
 					elif (test.endswith(params['extension']) and (root+"/"+test).find('/data/meta')==-1):
+						if('strict' in params):
+							if(params['strict'].lower()=='true' and '/dips' in root+"/"+test):
+								continue
 						logOutput("Found "+root+"/"+test+" with correct type",params)
 						examples.append(root+"/"+test)
 	else:
@@ -228,16 +294,62 @@ def convertBatch(stuff):
 					examples.append(line)
 			except:
 				logOutput("Did not find file "+line+" with correct type!\n",params)
+	if('force' in params):
+		params['force']=params['force'].lower()
+		if(params['force']=='both'):
+			params['force']+='ifbiggerifoversize'
+	if('max_size' in params):
+		params['max_size']=int(params['max_size'])
 	#Pick the conversion tool based on type.
 	if('type' in params):
-		if(params['type']=='video'):
-			fmpg.convertAudio(examples,params)
+		if(params['type']=='video' or params['type']=='audio'):
+			if('extension' not in params):
+				params['extension']='.wav'
+			checkFunc=fmpg.isAlreadyCorrect
+			compressFunc=fmpg.compress
+			copyFunc=fmpg.copy
+
 		elif(params['type']=='pdf'):
-			pdf.compressPDF(examples,params)
-		elif(params['type']=='audio'):
-			fmpg.convertAudio(examples,params)
+			#pdf.compressPDF(examples,params)
+			if('extension' not in params):
+				params['extension']='.pdf'
+			if('outextension' not in params):
+				params['outextension']='.pdf'
+			checkFunc=pdf.isAlreadyCorrect
+			compressFunc=pdf.compress
+			copyFunc=pdf.copy
 		elif(params['type']=='image'):
 			IM.convertImage(examples,params)
+		if(params['type']!='image'):
+			count=0
+			for example in examples:
+				count+=1
+				sys.stdout.write("\rProcessing file "+str(count)+" of "+str(len(examples)))
+				sys.stdout.flush()
+				if(not os.path.isfile(example)):
+					logOutput("File to convert does not exist " +example,params)
+					print "\n"+ "File to convert does not exist " +example
+					logError(example,params)
+					continue
+
+				#Find the new filename
+				newstring=makeNewFilePath(example,params)
+				if(not newstring):
+					continue
+
+				#Convert/Copy file, depending on params
+				if(not doFileOperation(example,newstring,checkFunc,compressFunc,copyFunc,params)):
+					continue
+
+				#Note if the file is too big at the end.
+				if('max_size' in params and 'warningfile' in params):
+					#If the file isn't small enough, post a warning.
+					if(not os.path.isfile(newstring)):
+						newstring=newstring.replace("."+newstring.split(".")[-1], "."+example.split(".")[-1])
+					if(os.path.getsize(newstring)>params['max_size']):
+						logOutput("The file was big enough to generate a warning",params)
+						params['warningfile'].write(example)
+				logOutput(newstring+"\t"+str(os.path.getsize(newstring)),params)
 	else:
 		IM.convertImage(examples,params)
 	if 'logfile' in params:
