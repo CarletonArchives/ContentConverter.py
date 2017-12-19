@@ -45,6 +45,7 @@ def propagate_option_change(filetype):
 				if(var in run[item]):
 					if(isinstance(run[filetype][var],StringVar) and isinstance(run[item][var],StringVar)):
 						run[item][var].set(originals[filetype][var])
+						originals[item][var]=originals[filetype][var]
 
 def make_button_changer(filetype):
 	def change_button():
