@@ -24,7 +24,6 @@ def isAlreadyCorrect(path,comparePath,params):
 	#If the original is smaller, it's wrong.
 	if('ifbigger' in params['force']):
 		if(os.path.getsize(path)>os.path.getsize(comparePath)):
-			print "\nOriginal was smaller\n"
 			return False
 	#If the bitrate is too high, it's wrong.
 	if(params['type']=='video'):
@@ -34,34 +33,46 @@ def isAlreadyCorrect(path,comparePath,params):
 			dur2=subprocess.Popen("ffprobe -i '"+comparePath+"' -show_entries format=duration -v quiet -of csv='p=0'",shell=True,stdout=subprocess.PIPE).stdout
 			dur2=float(dur2.readline())
 			if(8*os.path.getsize(path)/dur/1000>8*os.path.getsize(comparePath)/dur2/1000):
-				print "\nOriginal had lower bit rate\n"
+				conv.logOutput("Original had lower bit rate",params)
 				return False
 		except:
 			return False
 	return True
 
-def compress(inPath,outPath,params):
+def compress(inPath,outPath,params,*stats):
 	try:
 		ret=os.system("ffmpeg -y -loglevel panic -i '"+inPath+"' " +params['extra_args']+" '"+outPath+"' ")
 		if (ret!=0):
 			conv.logOutput("Error converting file " + outPath,params)
 			print "\n"+ "Error converting file " + outPath
 			conv.logError(inPath,params)
+			if(len(stats)>0):
+				stats[0]['errors']+=1
+				return False,stats[0]
 			return False
 	except:
 		conv.logOutput("Error converting file " + outPath,params)
 		print "\n"+ "Error converting file " + outPath
 		conv.logError(inPath,params)
+		if(len(stats)>0):
+			stats[0]['errors']+=1
+			return False,stats[0]
 		return False
+	if(len(stats)>0):
+		stats[0]['conversions']+=1
+		return True,stats[0]
 	return True
 	
-def copy(inPath,outPath,params):
+def copy(inPath,outPath,params,*stats):
 	if(os.path.isfile(outPath)):
 			ret = os.system("rm '"+outPath+"'")
 			if(ret!=0):
 				conv.logOutput("Error removing existing file " + outPath,params)
 				print "\n"+ "Error removing existing file " + outPath
 				conv.logError(outPath,params)
+				if(len(stats)>0):
+					stats[0]['errors']+=1
+					return False,stats[0]
 				return False
 	if("."+outPath.split(".")[-1] != "."+inPath.split(".")[-1]):
 		outPath=outPath.replace("."+outPath.split(".")[-1], "."+inPath.split(".")[-1])
@@ -71,11 +82,20 @@ def copy(inPath,outPath,params):
 			conv.logOutput("Error copying file " + outPath,params)
 			print "\n"+ "Error copying file " + outPath
 			conv.logError(inPath,params)
+			if(len(stats)>0):
+				stats[0]['errors']+=1
+				return False,stats[0]
 			return False
 	except:
 		conv.logOutput("Error copying file " + outPath,params)
 		print "\n"+ "Error copying file " + outPath
 		conv.logError(inPath,params)
+		if(len(stats)>0):
+			stats[0]['errors']+=1
+			return False,stats[0]
 		return False
+	if(len(stats)>0):
+		stats[0]['copies']+=1
+		return True,stats[0]
 	return True
 

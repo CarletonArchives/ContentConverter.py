@@ -25,32 +25,50 @@ def isAlreadyCorrect(path,comparePath,params):
 			return False
 	return True
 
-def compress(inPath,outPath,params):
+def compress(inPath,outPath,params,*stats):
 	try:
 		ret=os.system("gs -q -sstdout=%stderr -dNOPAUSE -dBATCH -sDEVICE=pdfwrite "+params['extra_args']+" -sOutputFile='"+outPath+"' '"+inPath+"' 2>/dev/null")
 		if (ret!=0):
 			conv.logOutput("Error converting file " + outPath,params)
 			print "\n"+ "Error converting file " + outPath
 			conv.logError(inPath,params)
+			if(len(stats)>0):
+				stats[0]['errors']+=1
+				return False,stats[0]
 			return False
 	except:
 		conv.logOutput("Error converting file " + outPath,params)
 		print "\n"+ "Error converting file " + outPath
 		conv.logError(inPath,params)
+		if(len(stats)>0):
+			stats[0]['errors']+=1
+			return False,stats[0]
 		return False
+	if(len(stats)>0):
+		stats[0]['conversions']+=1
+		return True,stats[0]
 	return True
 
-def copy(inPath,outPath,params):
+def copy(inPath,outPath,params,*stats):
 	try:
 		ret=os.system("cp '"+inPath+"' '"+outPath+"'")
 		if(ret!=0):
 			conv.logOutput("Error copying file " + outPath,params)
 			print "\n"+ "Error copying file " + outPath
 			conv.logError(inPath,params)
+			if(len(stats)>0):
+				stats[0]['errors']+=1
+				return False,stats[0]
 			return False
 	except:
 		conv.logOutput("Error copying file " + outPath,params)
 		print "\n"+ "Error copying file " + outPath
 		conv.logError(inPath,params)
+		if(len(stats)>0):
+			stats[0]['errors']+=1
+			return False,stats[0]
 		return False
+	if(len(stats)>0):
+		stats[0]['copies']+=1
+		return True,stats[0]
 	return True
