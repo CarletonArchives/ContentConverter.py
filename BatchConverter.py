@@ -125,7 +125,7 @@ def convertBatch(stuff,stats,formats):
 						#logOutput("Found "+root+"/"+test+" with correct type",params)
 						examples.append(root+"/"+test)
 					elif("."+test.split(".")[-1] not in formats and (root+"/"+test).find('/data/meta')==-1):
-						logOutput("Detected new format: ."+test.split(".")[-1] +" in file "+root+"/"+test,params)
+						logOutput("Detected unrecognized format: ."+test.split(".")[-1] +" in file "+root+"/"+test,params)
 						if("."+test.split(".")[-1] not in outFormats):
 							outFormats.append("."+test.split(".")[-1])
 	else:
@@ -137,7 +137,7 @@ def convertBatch(stuff,stats,formats):
 					#logOutput("Found "+line+" with correct type",params)
 					examples.append(line)
 				elif("."+line.split(".")[-1] not in formats and line.find('/data/meta')==-1):
-					logOutput("Detected new format: ."+line.split(".")[-1] +" in file "+line,params)
+					logOutput("Detected unrecognized format: ."+line.split(".")[-1] +" in file "+line,params)
 					if("."+line.split(".")[-1] not in outFormats):
 						outFormats.append("."+line.split(".")[-1])
 			else:
@@ -205,7 +205,7 @@ def convertBatch(stuff,stats,formats):
 			logOutput(newstring+"\t"+str(os.path.getsize(newstring)),params)
 	#else:
 	#	stats=IM.convertImage(examples,params,stats)
-	logOutput("Stats after "+params['input']+": "+str(stats),params)
+	logOutput("Total stats after processing "+params['input']+": "+str(stats),params)
 	return stats,outFormats
 
 if("BatchConverter.py"in sys.argv[0]):
