@@ -37,7 +37,7 @@ def compress(inPath,outPath,params,*stats):
 				return False,stats[0]
 			return False
 	except:
-		conv.logOutput("Error converting file " + outPath,params)
+		conv.logOutput("Error converting file, exception on " + outPath,params)
 		print "\n"+ "Error converting file " + outPath
 		conv.logError(inPath,params)
 		if(len(stats)>0):
