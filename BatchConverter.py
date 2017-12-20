@@ -113,6 +113,7 @@ def convertBatch(stuff,stats,formats):
 		sys.exit()
 	#Otherwise, walk through directory tree, and add .tiffs to examples
 	#This section preserves some old functionality. For images, it was trained to look at the header using imghdr, in addition to the extension. Probably should be removed or changed to a flag.
+	outFormats=[]
 	if('usefile'not in params):
 		for root,dirs,files in os.walk(top):
 			for test in files:
@@ -124,7 +125,9 @@ def convertBatch(stuff,stats,formats):
 						#logOutput("Found "+root+"/"+test+" with correct type",params)
 						examples.append(root+"/"+test)
 					elif("."+test.split(".")[-1] not in formats and (root+"/"+test).find('/data/meta')==-1):
-						formats.append("."+test.split(".")[-1])
+						logOutput("Detected new format: ."+test.split(".")[-1] +" in file "+root+"/"+test,params)
+						if("."+test.split(".")[-1] not in outFormats):
+							outFormats.append("."+test.split(".")[-1])
 	else:
 		for line in lines:
 			if(os.path.isfile(line)):
@@ -134,7 +137,9 @@ def convertBatch(stuff,stats,formats):
 					#logOutput("Found "+line+" with correct type",params)
 					examples.append(line)
 				elif("."+line.split(".")[-1] not in formats and line.find('/data/meta')==-1):
-					formats.append("."+line.split(".")[-1])
+					logOutput("Detected new format: ."+line.split(".")[-1] +" in file "+line,params)
+					if("."+line.split(".")[-1] not in outFormats):
+						outFormats.append("."+line.split(".")[-1])
 			else:
 				logOutput("Error: couldn't find file "+line,params)
 				logError(line,params)
@@ -201,7 +206,7 @@ def convertBatch(stuff,stats,formats):
 	#else:
 	#	stats=IM.convertImage(examples,params,stats)
 	logOutput("Stats after "+params['input']+": "+str(stats),params)
-	return stats,formats
+	return stats,outFormats
 
 if("BatchConverter.py"in sys.argv[0]):
 	stats={'conversions':0,'skipped':0,'copies':0,'errors':0}

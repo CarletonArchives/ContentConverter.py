@@ -334,17 +334,17 @@ def convertall():
 			print "\rProcessed files"
 			print "Conversion finished, cleaning up"
 			print "...............................\n"
-			for thing in set(newformats).difference(set(formats)):
+			for thing in newformats:
 				run[filetype]['logfile'].write("Detected new format: "+thing+"\n")
 			run[filetype]['logfile'].write("...............................\n")
-			newformats=formats
+			formats.extend(newformats)
 			if 'logfile' in run[filetype]:
 				run[filetype]['logfile'].close()
 			if 'errorfile' in run[filetype]:
 				run[filetype]['errorfile'].close()
 			if 'warningfile' in run[filetype]:
 				run[filetype]['warningfile'].close()
-	print "Formats found: "+str(set(newformats).difference(set(execute.keys())))
+	print "Formats found: "+str(list(set(formats).difference(set(execute.keys()))))
 	print "Final stats: ",stats
 MagicButton=Tkinter.Button(Window,anchor=Tkinter.S, text="Go!",command=convertall)
 MagicButton.grid(column=0,columnspan=2,row=2,sticky=Tkinter.S)
