@@ -42,6 +42,7 @@ def convert(inPath,outPath,params,*stats):
 				return False,stats[0]
 			return False
 		if(params['rescale']=='True' and 'max_size' in params):
+			conv.logOutput("Rescaling at " + scale + " times original",params)
 			scale=((params['max_size'])*1.0)/(1.0*os.path.getsize(outPath))
 			ret=os.system("convert -quiet '"+inPath.replace("'","'\\''")+"' -resize "+str(math.sqrt(10000*scale))+"% -define jpeg:extent="+str(params['max_size'])+" '"+outPath.replace("'","'\\''")+"'")
 			if(ret!=0):
