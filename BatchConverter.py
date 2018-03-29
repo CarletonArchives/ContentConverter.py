@@ -34,11 +34,11 @@ def makeNewFilePath(inPath,params):
 			except:
 				os.mkdir(testPath)
 	else:
-		if('strict' in params and '/dips' not in outPath):
+		if('strict' in params and not '/dips' in outPath):
 			if(params['strict']==True):
 				logError(inPath,params)
 				return False
-		elif (params['extension']==params['outextension'] and '/dips' not in outPath):
+		if(params['extension']==params['outextension'] and not '/dips' in outPath):
 			outPath=outPath.replace(params['outextension'],'___2'+params['outextension'])
 	return outPath
 
